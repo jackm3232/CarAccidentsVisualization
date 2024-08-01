@@ -40,11 +40,12 @@ private:
     int structSelect;
     sf::RenderWindow* window;
 
-    void updateCity();
+    void updateCity(std::map<std::vector<std::string>, std::vector<std::string>> cityStruct,
+                    int scale, int x, int y);
     void runSettings();
     void loadButtons();
     void updateMain(int j);
-    void insertDot(float y, float x);
+    void insertDot(float y, float x, int scale, int x_offset, int y_offset);
     void cityMenu(std::string selection);
     void updateSettings(sf::RenderWindow& settingsWindow);
 
@@ -53,6 +54,10 @@ public:
     std::vector<SelectionButton*> selectionButtons;
     std::map<std::string, sf::RectangleShape*> maps;
     std::vector<sf::CircleShape*> dots;
+
+    // temporary
+    std::map<std::string, std::map<std::string, std::map<std::vector<std::string>,
+    std::vector<std::string>>>> mapStruct;
 
     void mainMenu();
     sf::RenderWindow* getWindow();
