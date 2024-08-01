@@ -102,8 +102,7 @@ private:
     }
 
     //Do an inorder traversal of the tree, storing the keys and values within the passed in vectors
-    void traverse_helper(TreeNode<Key, Value>* sub_root, std::vector<Key> &key_vect,
-                                     std::vector<Value> &value_vect) {
+    void traverse_helper(TreeNode<Key, Value>* sub_root, std::vector<Key> &key_vect, std::vector<Value> &value_vect) {
         if (sub_root == nullptr) {
             return;
         }
