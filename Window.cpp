@@ -1,4 +1,5 @@
 #include "Window.h"
+#include <thread>
 #include "initialize_maps.h"
 
 void setText(sf::Text &text, float x, float y){
@@ -85,7 +86,6 @@ void Window::runSettings(){
                         for (int i = 12; i <= 13; i++) {
                             selectionButtons[i]->selected = false;
                         }
-                        std::cout << selectionButtons[i]->text << " selected" << std::endl;
                         selectionButtons[i]->selected = true;
                         if (!structSelect) {
                             structSelect = i - 11;
@@ -105,7 +105,9 @@ void Window::runSettings(){
     }
 }
 
-void Window::updateCity(OrderedMap<std::vector<std::string>, std::vector<std::string>>& cityStruct, int scale, int x, int y){
+void Window::updateCity(int scale, int x, int y){
+    window->clear({200,200,200});
+
     float newScale = 1 + (scale / 10.0);
 
     maps[city]->setScale(newScale, newScale);
@@ -122,7 +124,6 @@ void Window::updateCity(OrderedMap<std::vector<std::string>, std::vector<std::st
     rect.setFillColor({200,200,200});
     window->draw(rect);
 
-    sf::Texture texture;
     sf::RectangleShape rectangleShape;
     rectangleShape.setFillColor({225,225,225});
     rectangleShape.setSize(sf::Vector2f(250,40));
@@ -139,6 +140,51 @@ void Window::updateCity(OrderedMap<std::vector<std::string>, std::vector<std::st
     window->draw(menuButtons[10]->getSprite());
     window->draw(menuButtons[10]->getText());
 
+    sf::RectangleShape infoRect;
+    infoRect.setFillColor({225,225,225});
+    infoRect.setSize(sf::Vector2f(250,95));
+    infoRect.setPosition(0,505);
+    window->draw(infoRect);
+
+    sf::Text accidentText;
+    accidentText.setFont(font);
+    accidentText.setFillColor(sf::Color::Black);
+    accidentText.setScale(0.5,0.5);
+    accidentText.setString("Accident Info:");
+    accidentText.setPosition(5,505);
+    window->draw(accidentText);
+
+
+    for(auto i : accidents){
+        if(i->selected){
+            std::vector<std::string> key = {i->longitude, i->latitude};
+
+            std::string date = mapStruct[city][std::to_string(month)][key][0];
+            std::string temp = mapStruct[city][std::to_string(month)][key][1];
+            std::string condition = mapStruct[city][std::to_string(month)][key][2];
+            std::string severity = mapStruct[city][std::to_string(month)][key][3];
+
+            accidentText.setString("Date: " + date);
+            accidentText.setPosition(5,520);
+            window->draw(accidentText);
+
+            accidentText.setString("Location: " + std::to_string(std::stof(i->longitude)) + ", " + std::to_string(std::stof(i->latitude)));
+            accidentText.setPosition(5,535);
+            window->draw(accidentText);
+
+            accidentText.setString("Temperature: " + temp + "F");
+            accidentText.setPosition(5,550);
+            window->draw(accidentText);
+
+            accidentText.setString("Weather Condition: " + condition);
+            accidentText.setPosition(5,565);
+            window->draw(accidentText);
+
+            accidentText.setString("Accident Severity (From 1-4): " + severity);
+            accidentText.setPosition(5,580);
+            window->draw(accidentText);
+        }
+    }
 
     for(int i = 0; i < 12; i++){
         selectionButtons[i]->setSpritePos(5, (30 * i + 5) + 75/* - j*/);
@@ -169,14 +215,18 @@ void Window::cityMenu(std::string selection){
     int x = 0;
     int y = 0;
 
-    //std::map<std::vector<std::string>, std::vector<std::string>> cityStruct;
-    OrderedMap<std::vector<std::string>, std::vector<std::string>> cityStruct;
-    updateCity(cityStruct, scale, x, y);
+    //OrderedMap<std::vector<std::string>, std::vector<std::string>> cityStructMap;
+    //std::unordered_map<std::string, std::vector<std::string>> cityStructHashMap;
+
+    updateCity(scale, x, y);
 
     while(window->isOpen()){
         sf::Event event;
         while(window->pollEvent(event)){
-            if (event.type == sf::Event::Closed) {
+            if (event.type == sf::Event::Closed){
+                for(auto j : accidents){
+                    j->selected = false;
+                }
                 window->close();
             }
             float mouseX, mouseY;
@@ -200,12 +250,19 @@ void Window::cityMenu(std::string selection){
                     for(int i = 0; i < 12; i++){
                         selectionButtons[i]->selected = false;
                     }
-                    month = "";
+                    for(auto j : accidents){
+                        j->selected = false;
+                    }
+                    accidents = {};
+                    month = 0;
                     return;
                 }
                 for(auto i : accidents){
                     if(i->dot->getGlobalBounds().contains(mouseX, mouseY)){
-                        std::cout << i->latitude << " " << i->longitude << std::endl;
+                        for(auto j : accidents){
+                            j->selected = false;
+                        }
+                        i->selected = true;
                     }
                 }
             }
@@ -227,25 +284,26 @@ void Window::cityMenu(std::string selection){
                         for(int j = 0; j < 12; j++){
                             selectionButtons[j]->selected = false;
                         }
-                        std::cout << selectionButtons[i]->text << " selected" << std::endl;
                         selectionButtons[i]->selected = true;
-                        month = selectionButtons[i]->text;
-                        cityStruct = mapStruct[city][std::to_string(i + 1)];
+                        month = i + 1;
                         accidents = {};
 
-                        std::vector<std::vector<std::string>> key_vect;
-                        std::vector<std::vector<std::string>> value_vect;
-                        cityStruct.traverse(key_vect, value_vect);
+                        if(structSelect== 1){
+                            std::vector<std::vector<std::string>> key_vect;
+                            std::vector<std::vector<std::string>> value_vect;
+                            mapStruct[city][std::to_string(month)].traverse(key_vect, value_vect);
 
-                        for(auto i : key_vect){
-                            Accident* accident = new Accident;
-                            accident->latitude = stof(i[1]);
-                            accident->longitude = std::stof(i[0]);
-                            accident->updateDot(city, scale, x, y);
-                            accidents.push_back(accident);
+                            for(auto i : key_vect){
+                                Accident* accident = new Accident;
+                                accident->longitude = i[0];
+                                accident->latitude = i[1];
+                                accident->updateDot(city, scale, x, y);
+                                accidents.push_back(accident);
+                            }
                         }
+                        else{
 
-                        std::cout << key_vect.size() << std::endl;
+                        }
                     }
                 }
             }
@@ -295,7 +353,7 @@ void Window::cityMenu(std::string selection){
                     }
                 }
             }
-            updateCity(cityStruct, scale, x, y);
+            updateCity(scale, x, y);
         }
     }
 }
@@ -327,14 +385,12 @@ void Window::updateMain(int j){
 void Window::mainMenu() {
     updateMain(0);
     runSettings();
+
     if(!structSelect){
         return;
     }
-    else if(structSelect == 1){
-        mapStruct = initialize_maps("../US_Accidents_10_Major_Cities.csv");
-    }
     else{
-        // Select Hash Map
+        initialize_maps("../US_Accidents_10_Major_Cities.csv", mapStruct, hashMapStruct);
     }
 
     while(window->isOpen()){
@@ -364,27 +420,32 @@ void Window::mainMenu() {
                     if(menuButtons[i]->getSprite().getGlobalBounds().contains(mouseX, mouseY)) {
                         menuButtons[i]->setSpriteColor({240, 240, 240});
                         if(i < 10){
+
+                            // Referenced from SFML Documentation: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Clock.php,
+                            //      https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Time.php
                             sf::Time elapsed;
                             sf::Clock clock;
                             sf::Time ms = sf::milliseconds(1);
-                            int counter = 0;
-                            while(counter < 300){
+                            int elapsedMS = 0;
+                            while(elapsedMS < 300){
                                 window->pollEvent(event);
                                 elapsed += clock.restart();
                                 while(elapsed >= ms){
-                                    updateMain(counter);
-                                    counter++;
+                                    updateMain(elapsedMS);
+                                    elapsedMS++;
                                     elapsed -= ms;
                                 }
                             }
-
-                            std::cout << menuButtons[i]->text << " pressed" << std::endl;
 
                             city = menuButtons[i]->text;
 
                             cityMenu(menuButtons[i]->text);
                             city = "None";
-                            month = "None";
+                            month = 0;
+
+
+                            // Referenced from SFML Documentation: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Clock.php
+                            //      https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Time.php
 
                             sf::Time elapsed2;
                             sf::Clock clock2;
@@ -401,17 +462,8 @@ void Window::mainMenu() {
                             }
                         }
                         else{
-                            std::cout << "Settings Pressed" << std::endl;
                             int previousSelection = structSelect;
-
                             runSettings();
-
-                            if(structSelect == 1 && previousSelection != 1){
-                                mapStruct = initialize_maps("../US_Accidents_10_Major_Cities.csv");
-                            }
-                            else if(structSelect == 2 && previousSelection != 2){
-                                // Select Hashmap;
-                            }
                         }
                     }
                 }
@@ -532,7 +584,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* losAngelesRect = new sf::RectangleShape;
     losAngelesRect->setSize(sf::Vector2f(800,600));
-    losAngelesRect->setPosition(250,0);
+    losAngelesRect->setPosition(250 + 400,300);
+    losAngelesRect->setOrigin(400,300);
     losAngelesRect->setTexture(losAngelesTexture);
 
     maps["Los Angeles"] = losAngelesRect;
@@ -542,7 +595,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* chicagoRect = new sf::RectangleShape;
     chicagoRect->setSize(sf::Vector2f(800,600));
-    chicagoRect->setPosition(250,0);
+    chicagoRect->setPosition(250 + 400,300);
+    chicagoRect->setOrigin(400,300);
     chicagoRect->setTexture(chicagoTexture);
 
     maps["Chicago"] = chicagoRect;
@@ -552,7 +606,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* houstonRect = new sf::RectangleShape;
     houstonRect->setSize(sf::Vector2f(800,600));
-    houstonRect->setPosition(250,0);
+    houstonRect->setPosition(250 + 400,300);
+    houstonRect->setOrigin(400,300);
     houstonRect->setTexture(houstonTexture);
 
     maps["Houston"] = houstonRect;
@@ -562,7 +617,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* phoenixRect = new sf::RectangleShape;
     phoenixRect->setSize(sf::Vector2f(800,600));
-    phoenixRect->setPosition(250,0);
+    phoenixRect->setPosition(250 + 400,300);
+    phoenixRect->setOrigin(400,300);
     phoenixRect->setTexture(phoenixTexture);
 
     maps["Phoenix"] = phoenixRect;
@@ -572,7 +628,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* philadelphiaRect = new sf::RectangleShape;
     philadelphiaRect->setSize(sf::Vector2f(800,600));
-    philadelphiaRect->setPosition(250,0);
+    philadelphiaRect->setPosition(250 + 400,300);
+    philadelphiaRect->setOrigin(400,300);
     philadelphiaRect->setTexture(philadelphiaTexture);
 
     maps["Philadelphia"] = philadelphiaRect;
@@ -582,7 +639,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* seattleRect = new sf::RectangleShape;
     seattleRect->setSize(sf::Vector2f(800,600));
-    seattleRect->setPosition(250,0);
+    seattleRect->setPosition(250 + 400,300);
+    seattleRect->setOrigin(400,300);
     seattleRect->setTexture(seattleTexture);
 
     maps["Seattle"] = seattleRect;
@@ -592,7 +650,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* detroitRect = new sf::RectangleShape;
     detroitRect->setSize(sf::Vector2f(800,600));
-    detroitRect->setPosition(250,0);
+    detroitRect->setPosition(250 + 400,300);
+    detroitRect->setOrigin(400,300);
     detroitRect->setTexture(detroitTexture);
 
     maps["Detroit"] = detroitRect;
@@ -602,7 +661,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* bostonRect = new sf::RectangleShape;
     bostonRect->setSize(sf::Vector2f(800,600));
-    bostonRect->setPosition(250,0);
+    bostonRect->setPosition(250 + 400,300);
+    bostonRect->setOrigin(400,300);
     bostonRect->setTexture(bostonTexture);
 
     maps["Boston"] = bostonRect;
@@ -612,7 +672,8 @@ void Window::loadButtons(){
 
     sf::RectangleShape* miamiRect = new sf::RectangleShape;
     miamiRect->setSize(sf::Vector2f(800,600));
-    miamiRect->setPosition(250,0);
+    miamiRect->setPosition(250 + 400,300);
+    miamiRect->setOrigin(400,300);
     miamiRect->setTexture(miamiTexture);
 
     maps["Miami"] = miamiRect;
@@ -625,35 +686,44 @@ void Accident::updateDot(std::string& city, int scale, int x_offset, int y_offse
     dot->setOrigin(1,1);
 
     if(city == "New York"){
-        dot->setPosition((((latitude + 74.373828) / 0.732651) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
-                         ((40.889949 - longitude) / 0.4137) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
+        dot->setPosition((((std::stof(latitude) + 74.373828) / 0.732651) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((40.889949 - std::stof(longitude)) / 0.4137) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Los Angeles"){
-        dot->setPosition((((latitude + 118.951490) / 1.41861) * 800) + 250, ((34.457127 - longitude) / 0.922217) * 600);
+        dot->setPosition((((std::stof(latitude) + 118.951490) / 1.41861) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((34.457127 - std::stof(longitude)) / 0.922217) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Chicago"){
-        dot->setPosition((((longitude + 88.001141) / 0.747931) * 800) + 250, ((42.049659 - latitude) / 0.417422) * 600);
+        dot->setPosition((((std::stof(latitude) + 88.001141) / 0.747931) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((42.049659 - std::stof(longitude)) / 0.417422) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Houston"){
-        dot->setPosition((((longitude + 96.077007) / 1.487007) * 800) + 250, ((30.205625 - latitude) / 0.971206) * 600);
+        dot->setPosition((((std::stof(latitude) + 96.077007) / 1.487007) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((30.205625 - std::stof(longitude)) / 0.971206) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Phoenix"){
-        dot->setPosition((((longitude + 112.832350) / 1.471048) * 800) + 250, ((33.916651 - latitude) / 0.916546) * 600);
+        dot->setPosition((((std::stof(latitude) + 112.832350) / 1.471048) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((33.916651 - std::stof(longitude)) / 0.916546) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Philadelphia"){
-        dot->setPosition((((longitude + 75.533461) / 0.741084) * 800) + 250, ((40.154221 - latitude) / 0.429186) * 600);
+        dot->setPosition((((std::stof(latitude) + 75.533461) / 0.741084) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((40.154221 - std::stof(longitude)) / 0.429186) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Seattle"){
-        dot->setPosition((((longitude + 122.704418) / 0.735338) * 800) + 250, ((47.770371 - latitude) / 0.370043) * 600);
+        dot->setPosition((((std::stof(latitude) + 122.704418) / 0.735338) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((47.770371 - std::stof(longitude)) / 0.370043) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Detroit"){
-        dot->setPosition((((longitude + 83.329453) / 0.551048) * 800) + 250, ((42.473015 - latitude) / 0.304626) * 600);
+        dot->setPosition((((std::stof(latitude) + 83.329453) / 0.551048) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((42.473015 - std::stof(longitude)) / 0.304626) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Boston"){
-        dot->setPosition((((longitude + 71.416616) / 0.738651) * 800) + 250, ((42.540786 - latitude) / 0.417064) * 600);
+        dot->setPosition((((std::stof(latitude) + 71.416616) / 0.738451) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((42.540786 - std::stof(longitude)) / 0.406064) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Miami"){
-        dot->setPosition((((longitude + 80.374688) / 0.368266) * 800) + 250, ((25.863971 - latitude) / 0.247405) * 600);
+        dot->setPosition((((std::stof(latitude) + 80.374688) / 0.368266) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((25.863971 - std::stof(longitude)) / 0.247405) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
 }
 
@@ -680,6 +750,7 @@ void MenuButton::setSpriteColor(sf::Color color){
 Accident::Accident(){
     dot = new sf::CircleShape;
     dot->setFillColor(sf::Color::Red);
+    selected = false;
 }
 
 MenuButton::MenuButton(std::string inputText, int width, int height) {
@@ -717,7 +788,7 @@ SelectionButton::SelectionButton(std::string inputText, int width, int height) :
 
 Window::Window(){
     city = "None";
-    month = "None";
+    month = 0;
     structSelect = 0;
     window = new sf::RenderWindow(sf::VideoMode(1050, 600), "Car Accident Visualization");
     loadButtons();

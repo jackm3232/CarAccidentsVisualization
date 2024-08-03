@@ -7,11 +7,12 @@
 
 class Accident{
 public:
-    float latitude;
-    float longitude;
+    std::string latitude;
+    std::string longitude;
     sf::CircleShape* dot;
     //void updateDot(sf::CircleShape& dot, float y, float x, int scale, int x_offset, int y_offset);
     void updateDot(std::string& city, int scale, int x_offset, int y_offset);
+    bool selected;
 
     Accident();
 };
@@ -48,16 +49,14 @@ class Window{
 private:
     sf::Font font;
     std::string city;
-    std::string month;
+    int month;
     int structSelect;
     sf::RenderWindow* window;
 
-    void updateCity(OrderedMap<std::vector<std::string>, std::vector<std::string>>& cityStruct,
-                    int scale, int x, int y);
+    void updateCity(int scale, int x, int y);
     void runSettings();
     void loadButtons();
     void updateMain(int j);
-    //void insertDot(float y, float x, int scale, int x_offset, int y_offset);
     void cityMenu(std::string selection);
     void updateSettings(sf::RenderWindow& settingsWindow);
 
@@ -65,12 +64,13 @@ public:
     std::vector<MenuButton*> menuButtons;
     std::vector<SelectionButton*> selectionButtons;
     std::map<std::string, sf::RectangleShape*> maps;
-    //std::vector<sf::CircleShape*> dots;
     std::vector<Accident*> accidents;
 
-    // temporary
     OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>,
     std::vector<std::string>>>> mapStruct;
+
+    std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_map<std::string,
+    std::vector<std::string>>>> hashMapStruct;
 
     void mainMenu();
     sf::RenderWindow* getWindow();
