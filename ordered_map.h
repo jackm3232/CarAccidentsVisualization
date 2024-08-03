@@ -47,12 +47,6 @@ public:
         traverse_helper(root_entire_tree, key_vect, value_vect);
     }
 
-    //Destructor that deletes all dynamically allocated nodes when the tree falls out of scope
-    /*~OrderedMap() {
-        delete_nodes(root_entire_tree);
-        root_entire_tree = nullptr;
-    }*/
-
 private:
     //Insert specified key-value pair into the tree and then fix the potential red black tree violations that arise
     void insert(const Key &key, const Value &value) {
@@ -239,13 +233,4 @@ private:
         //Root node of the entire tree must always be black
         root_entire_tree->color = "black";
     }
-
-    //Deletes all nodes in the tree
-    /*void delete_nodes(TreeNode<Key, Value>* sub_root) {
-        if (sub_root != nullptr) {
-            delete_nodes(sub_root->left);
-            delete_nodes(sub_root->right);
-            delete sub_root;
-        }
-    }*/
 };
