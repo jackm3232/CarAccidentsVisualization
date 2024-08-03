@@ -1,19 +1,25 @@
+#include "ordered_map.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <map>
 #include <cmath>
 
 //will later pass in map and hashmap as parameters
-void initialize_maps(const std::string &filename) {
+OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>, std::vector<std::string>>>> initialize_maps(const std::string &filename) {
+    //std::map<std::string, std::map<std::string, std::map<std::vector<std::string>, std::vector<std::string>>>> mapStruct;
+    OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>, std::vector<std::string>>>> mapStruct;
+
     std::ifstream data_file(filename);
 
     if (!data_file.is_open()) {
         std::cerr << "Cannot open " << filename << "!" << std::endl;
-        return;
+        return mapStruct;
     }
 
     std::string line;
+    std::getline(data_file, line);
     while (std::getline(data_file, line)) {
         std::stringstream line_stream(line);
         std::string section;
@@ -75,6 +81,10 @@ void initialize_maps(const std::string &filename) {
         
         //will later use this to add a map entry
         //map_name [sections_of_line[0]] [sections_of_line[month]] [coords] = accident_info;
+
+        mapStruct[sections_of_line[0]][month][coords] = accident_info;
     }
+
     data_file.close();
+    return mapStruct;
 }

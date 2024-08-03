@@ -3,6 +3,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include "ordered_map.h"
 
 class Accident{
 public:
@@ -51,7 +52,7 @@ private:
     int structSelect;
     sf::RenderWindow* window;
 
-    void updateCity(std::map<std::vector<std::string>, std::vector<std::string>>& cityStruct,
+    void updateCity(OrderedMap<std::vector<std::string>, std::vector<std::string>>& cityStruct,
                     int scale, int x, int y);
     void runSettings();
     void loadButtons();
@@ -68,7 +69,7 @@ public:
     std::vector<Accident*> accidents;
 
     // temporary
-    std::map<std::string, std::map<std::string, std::map<std::vector<std::string>,
+    OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>,
     std::vector<std::string>>>> mapStruct;
 
     void mainMenu();

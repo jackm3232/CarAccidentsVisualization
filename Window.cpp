@@ -105,7 +105,7 @@ void Window::runSettings(){
     }
 }
 
-void Window::updateCity(std::map<std::vector<std::string>, std::vector<std::string>>& cityStruct, int scale, int x, int y){
+void Window::updateCity(OrderedMap<std::vector<std::string>, std::vector<std::string>>& cityStruct, int scale, int x, int y){
     float newScale = 1 + (scale / 10.0);
 
     maps[city]->setScale(newScale, newScale);
@@ -169,7 +169,8 @@ void Window::cityMenu(std::string selection){
     int x = 0;
     int y = 0;
 
-    std::map<std::vector<std::string>, std::vector<std::string>> cityStruct;
+    //std::map<std::vector<std::string>, std::vector<std::string>> cityStruct;
+    OrderedMap<std::vector<std::string>, std::vector<std::string>> cityStruct;
     updateCity(cityStruct, scale, x, y);
 
     while(window->isOpen()){
@@ -232,14 +233,19 @@ void Window::cityMenu(std::string selection){
                         cityStruct = mapStruct[city][std::to_string(i + 1)];
                         accidents = {};
 
-                        for(auto i : cityStruct){
+                        std::vector<std::vector<std::string>> key_vect;
+                        std::vector<std::vector<std::string>> value_vect;
+                        cityStruct.traverse(key_vect, value_vect);
+
+                        for(auto i : key_vect){
                             Accident* accident = new Accident;
-                            accident->latitude = stof(i.first[1]);
-                            accident->longitude = std::stof(i.first[0]);
-                            //updateDot(*accident->dot, std::stof(i.first[0]), stof(i.first[1]), scale, x, y);
+                            accident->latitude = stof(i[1]);
+                            accident->longitude = std::stof(i[0]);
                             accident->updateDot(city, scale, x, y);
                             accidents.push_back(accident);
                         }
+
+                        std::cout << key_vect.size() << std::endl;
                     }
                 }
             }
