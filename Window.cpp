@@ -61,23 +61,26 @@ void Window::runSettings(){
         while (settingsWindow.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 settingsWindow.close();
+                return;
             }
 
             float mouseX, mouseY;
             mouseX = sf::Mouse::getPosition(settingsWindow).x;
             mouseY = sf::Mouse::getPosition(settingsWindow).y;
 
-            for (int i = 12; i <= 13; i++) {
+            for (int i = 12; i <= 13; i++){
                 if (selectionButtons[i]->getSprite().getGlobalBounds().contains(mouseX, mouseY)) {
                     selectionButtons[i]->setSpriteColor({240, 240, 240});
-                } else {
+                }
+                else{
                     selectionButtons[i]->setSpriteColor({225, 225, 225});
                 }
-                if (event.type == sf::Event::MouseButtonPressed) {
+                if (event.type == sf::Event::MouseButtonPressed){
                     if (selectionButtons[i]->getSprite().getGlobalBounds().contains(mouseX, mouseY)) {
                         selectionButtons[i]->setSpriteColor({225, 225, 225});
                     }
-                } else if (event.type == sf::Event::MouseButtonReleased) {
+                }
+                else if (event.type == sf::Event::MouseButtonReleased){
                     if (selectionButtons[i]->getSprite().getGlobalBounds().contains(mouseX, mouseY)) {
                         for (int i = 12; i <= 13; i++) {
                             selectionButtons[i]->selected = false;
@@ -86,33 +89,33 @@ void Window::runSettings(){
                         selectionButtons[i]->selected = true;
                         if (!structSelect) {
                             structSelect = i - 11;
+                            settingsWindow.close();
                             return;
-                        } else {
+                        }
+                        else{
                             structSelect = i - 11;
                         }
                     }
                 }
             }
-            updateSettings(settingsWindow);
+            if(settingsWindow.isOpen()){
+                updateSettings(settingsWindow);
+            }
         }
     }
 }
 
-void Window::updateCity(std::map<std::vector<std::string>, std::vector<std::string>> cityStruct, int scale, int x, int y){
+void Window::updateCity(std::map<std::vector<std::string>, std::vector<std::string>>& cityStruct, int scale, int x, int y){
     float newScale = 1 + (scale / 10.0);
 
     maps[city]->setScale(newScale, newScale);
     maps[city]->setOrigin(400 + (x * 10), 300 + (y * 10));
 
     window->draw(*maps[city]);
-    dots = {};
 
-    for(auto i : cityStruct){
-        insertDot(std::stof(i.first[0]), stof(i.first[1]), scale, x, y);
-    }
-
-    for(auto j: dots){
-        window->draw(*j);
+    for(auto i: accidents){
+        i->updateDot(city, scale, x, y);
+        window->draw(*i->dot);
     }
 
     sf::RectangleShape rect(sf::Vector2f(250,600));
@@ -199,6 +202,11 @@ void Window::cityMenu(std::string selection){
                     month = "";
                     return;
                 }
+                for(auto i : accidents){
+                    if(i->dot->getGlobalBounds().contains(mouseX, mouseY)){
+                        std::cout << i->latitude << " " << i->longitude << std::endl;
+                    }
+                }
             }
 
             for(int i = 0; i < 12; i++){
@@ -222,6 +230,16 @@ void Window::cityMenu(std::string selection){
                         selectionButtons[i]->selected = true;
                         month = selectionButtons[i]->text;
                         cityStruct = mapStruct[city][std::to_string(i + 1)];
+                        accidents = {};
+
+                        for(auto i : cityStruct){
+                            Accident* accident = new Accident;
+                            accident->latitude = stof(i.first[1]);
+                            accident->longitude = std::stof(i.first[0]);
+                            //updateDot(*accident->dot, std::stof(i.first[0]), stof(i.first[1]), scale, x, y);
+                            accident->updateDot(city, scale, x, y);
+                            accidents.push_back(accident);
+                        }
                     }
                 }
             }
@@ -309,6 +327,9 @@ void Window::mainMenu() {
     else if(structSelect == 1){
         mapStruct = initialize_maps("../US_Accidents_10_Major_Cities.csv");
     }
+    else{
+        // Select Hash Map
+    }
 
     while(window->isOpen()){
         sf::Event event;
@@ -375,7 +396,16 @@ void Window::mainMenu() {
                         }
                         else{
                             std::cout << "Settings Pressed" << std::endl;
+                            int previousSelection = structSelect;
+
                             runSettings();
+
+                            if(structSelect == 1 && previousSelection != 1){
+                                mapStruct = initialize_maps("../US_Accidents_10_Major_Cities.csv");
+                            }
+                            else if(structSelect == 2 && previousSelection != 2){
+                                // Select Hashmap;
+                            }
                         }
                     }
                 }
@@ -582,44 +612,43 @@ void Window::loadButtons(){
     maps["Miami"] = miamiRect;
 }
 
-void Window::insertDot(float y, float x, int scale, int x_offset, int y_offset){
-    sf::CircleShape* dot = new sf::CircleShape(1.5 + scale / 10.0);
+void Accident::updateDot(std::string& city, int scale, int x_offset, int y_offset){
+    dot->setRadius(1.5 + scale / 10);
+    dot->setOutlineColor(sf::Color::Black);
+    dot->setOutlineThickness(0.1 * scale / 10);
     dot->setOrigin(1,1);
-    dot->setFillColor(sf::Color::Red);
 
     if(city == "New York"){
-        dot->setPosition((((x + 74.373828) / 0.732651) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
-                         ((40.889949 - y) / 0.4137) * (600 * (1 + scale/10.0)) - (scale * 30)- (y_offset*(10+scale)));
+        dot->setPosition((((latitude + 74.373828) / 0.732651) * (800 * (1 + scale / 10.0))) + (250 - (scale * 39.9) - (x_offset*(10+scale))),
+                         ((40.889949 - longitude) / 0.4137) * (600 * (1 + scale/10.0)) - (scale * 30) - (y_offset*(10+scale)));
     }
     else if(city == "Los Angeles"){
-        dot->setPosition((((x + 118.951490) / 1.41861) * 800) + 250, ((34.457127 - y) / 0.922217) * 600);
+        dot->setPosition((((latitude + 118.951490) / 1.41861) * 800) + 250, ((34.457127 - longitude) / 0.922217) * 600);
     }
     else if(city == "Chicago"){
-        dot->setPosition((((x + 88.001141) / 0.747931) * 800) + 250, ((42.049659 - y) / 0.417422) * 600);
+        dot->setPosition((((longitude + 88.001141) / 0.747931) * 800) + 250, ((42.049659 - latitude) / 0.417422) * 600);
     }
     else if(city == "Houston"){
-        dot->setPosition((((x + 96.077007) / 1.487007) * 800) + 250, ((30.205625 - y) / 0.971206) * 600);
+        dot->setPosition((((longitude + 96.077007) / 1.487007) * 800) + 250, ((30.205625 - latitude) / 0.971206) * 600);
     }
     else if(city == "Phoenix"){
-        dot->setPosition((((x + 112.832350) / 1.471048) * 800) + 250, ((33.916651 - y) / 0.916546) * 600);
+        dot->setPosition((((longitude + 112.832350) / 1.471048) * 800) + 250, ((33.916651 - latitude) / 0.916546) * 600);
     }
     else if(city == "Philadelphia"){
-        dot->setPosition((((x + 75.533461) / 0.741084) * 800) + 250, ((40.154221 - y) / 0.429186) * 600);
+        dot->setPosition((((longitude + 75.533461) / 0.741084) * 800) + 250, ((40.154221 - latitude) / 0.429186) * 600);
     }
     else if(city == "Seattle"){
-        dot->setPosition((((x + 122.704418) / 0.735338) * 800) + 250, ((47.770371 - y) / 0.370043) * 600);
+        dot->setPosition((((longitude + 122.704418) / 0.735338) * 800) + 250, ((47.770371 - latitude) / 0.370043) * 600);
     }
     else if(city == "Detroit"){
-        dot->setPosition((((x + 83.329453) / 0.551048) * 800) + 250, ((42.473015 - y) / 0.304626) * 600);
+        dot->setPosition((((longitude + 83.329453) / 0.551048) * 800) + 250, ((42.473015 - latitude) / 0.304626) * 600);
     }
     else if(city == "Boston"){
-        dot->setPosition((((x + 71.416616) / 0.738651) * 800) + 250, ((42.540786 - y) / 0.417064) * 600);
+        dot->setPosition((((longitude + 71.416616) / 0.738651) * 800) + 250, ((42.540786 - latitude) / 0.417064) * 600);
     }
     else if(city == "Miami"){
-        dot->setPosition((((x + 80.374688) / 0.368266) * 800) + 250, ((25.863971 - y) / 0.247405) * 600);
+        dot->setPosition((((longitude + 80.374688) / 0.368266) * 800) + 250, ((25.863971 - latitude) / 0.247405) * 600);
     }
-
-    dots.push_back(dot);
 }
 
 sf::Sprite MenuButton::getSprite(){
@@ -640,6 +669,11 @@ void MenuButton::setTextPos(int x, int y){
 
 void MenuButton::setSpriteColor(sf::Color color){
     buttonSprite.setColor(color);
+}
+
+Accident::Accident(){
+    dot = new sf::CircleShape;
+    dot->setFillColor(sf::Color::Red);
 }
 
 MenuButton::MenuButton(std::string inputText, int width, int height) {

@@ -4,6 +4,17 @@
 #include <chrono>
 #include <thread>
 
+class Accident{
+public:
+    float latitude;
+    float longitude;
+    sf::CircleShape* dot;
+    //void updateDot(sf::CircleShape& dot, float y, float x, int scale, int x_offset, int y_offset);
+    void updateDot(std::string& city, int scale, int x_offset, int y_offset);
+
+    Accident();
+};
+
 class MenuButton{
 private:
     sf::Font font;
@@ -40,12 +51,12 @@ private:
     int structSelect;
     sf::RenderWindow* window;
 
-    void updateCity(std::map<std::vector<std::string>, std::vector<std::string>> cityStruct,
+    void updateCity(std::map<std::vector<std::string>, std::vector<std::string>>& cityStruct,
                     int scale, int x, int y);
     void runSettings();
     void loadButtons();
     void updateMain(int j);
-    void insertDot(float y, float x, int scale, int x_offset, int y_offset);
+    //void insertDot(float y, float x, int scale, int x_offset, int y_offset);
     void cityMenu(std::string selection);
     void updateSettings(sf::RenderWindow& settingsWindow);
 
@@ -53,7 +64,8 @@ public:
     std::vector<MenuButton*> menuButtons;
     std::vector<SelectionButton*> selectionButtons;
     std::map<std::string, sf::RectangleShape*> maps;
-    std::vector<sf::CircleShape*> dots;
+    //std::vector<sf::CircleShape*> dots;
+    std::vector<Accident*> accidents;
 
     // temporary
     std::map<std::string, std::map<std::string, std::map<std::vector<std::string>,
