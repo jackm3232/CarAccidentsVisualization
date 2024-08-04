@@ -1,6 +1,6 @@
 #pragma once
 #include <iostream>
-#include <functional> 
+#include <functional>
 
 template<typename Key, typename Value>
 class Hashmap {
@@ -47,14 +47,14 @@ private:
     }
 
 public:
-   // sets initial array to 1000 buckets
+    // sets initial array to 1000 buckets
     Hashmap(int cap = 1000) : capacity(cap), size(0) {
         table = new HashNode[capacity];
         for (int i = 0; i < capacity; ++i) {
             table[i].isOccupied = false;
         }
     }
-   
+
     ~Hashmap() {
         delete[] table;
     }
@@ -72,12 +72,12 @@ public:
         table[(index + i * i) % capacity].value = value;
         table[(index + i * i) % capacity].isOccupied = true;
         size++;
-    // checks to rehash using the load factor
+        // checks to rehash using the load factor
         if (static_cast<float>(size) / capacity > 0.75) {
             resize();
         }
     }
-// search function using qudrating probing 
+// search function using qudrating probing
     Value* search(const Key& key) {
         int index = hashFunction(key);
         int i = 0;
@@ -92,39 +92,42 @@ public:
         return nullptr;
     }
 
-    void traverse() const {
+    void traverse(std::vector<std::string>&KeyVector,std::vector<std::string>&ValueVector) const {
         for (int i = 0; i < capacity; ++i) {
             if (table[i].isOccupied) {
-                std::cout << "Key: " << table[i].key << ", Value: " << table[i].value << std::endl;
+                KeyVector.push_back(table[i].key);
+                ValueVector.push_back(table[i].value);
+
             }
         }
     }
-// overload operator 
-Value& operator[](const Key& key) {
-    int index = hashFunction(key);  
-    int i = 0;  
-// searches for key 
-    while (table[(index + i * i) % capacity].isOccupied) {
-        if (table[(index + i * i) % capacity].key == key) {  
-            return table[(index + i * i) % capacity].value;  
+// overload operator
+    Value& operator[](const Key& key) {
+        int index = hashFunction(key);
+        int i = 0;
+// searches for key
+        while (table[(index + i * i) % capacity].isOccupied) {
+            if (table[(index + i * i) % capacity].key == key) {
+                return table[(index + i * i) % capacity].value;
+            }
+            i++;
         }
-        i++;
-    }
 
-    // creates a new entry if key aint found
-    if (!table[(index + i * i) % capacity].isOccupied) {
-        table[(index + i * i) % capacity].key = key;  
-        table[(index + i * i) % capacity].isOccupied = true; 
-        size++;
+        if (!table[(index + i * i) % capacity].isOccupied) {
+            table[(index + i * i) % capacity].key = key;
+            table[(index + i * i) % capacity].isOccupied = true;
+            size++;
 
-        // Check load factor 
-        if (static_cast<float>(size) / capacity > 0.75) {
-            resize();
-            return (*this)[key];  // Recompute after resize
+            // Check load factor
+            if (static_cast<float>(size) / capacity > 0.75) {
+                resize();
+                return (*this)[key];
+            }
         }
-    }
 
-    return table[(index + i * i) % capacity].value;  // returns value
-}
+        return table[(index + i * i) % capacity].value;
+    }
 
 };
+
+
