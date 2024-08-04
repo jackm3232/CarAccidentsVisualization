@@ -136,8 +136,10 @@ void Window::updateCity(int scale, int x, int y){
 
     sf::RectangleShape infoRect;
     infoRect.setFillColor({225,225,225});
-    infoRect.setSize(sf::Vector2f(250,95));
-    infoRect.setPosition(0,505);
+    infoRect.setSize(sf::Vector2f(250,97));
+    infoRect.setPosition(252,507);
+    infoRect.setOutlineColor(sf::Color::Black);
+    infoRect.setOutlineThickness(2);
     window->draw(infoRect);
 
     sf::Text accidentText;
@@ -145,7 +147,7 @@ void Window::updateCity(int scale, int x, int y){
     accidentText.setFillColor(sf::Color::Black);
     accidentText.setScale(0.5,0.5);
     accidentText.setString("Accident Info:");
-    accidentText.setPosition(5,505);
+    accidentText.setPosition(257,505);
     window->draw(accidentText);
 
 
@@ -164,31 +166,31 @@ void Window::updateCity(int scale, int x, int y){
                 severity = mapStruct[city][std::to_string(month)][key][3];
             }
             else if(structSelect == 2){
+                auto searchTimeStart = std::chrono::high_resolution_clock::now();
                 date = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][0];
                 temp = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][1];
                 condition = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][2];
                 severity = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][3];
             }
 
-
             accidentText.setString("Date: " + date);
-            accidentText.setPosition(5,520);
+            accidentText.setPosition(257,520);
             window->draw(accidentText);
 
             accidentText.setString("Location: " + std::to_string(std::stof(i->longitude)) + ", " + std::to_string(std::stof(i->latitude)));
-            accidentText.setPosition(5,535);
+            accidentText.setPosition(257,535);
             window->draw(accidentText);
 
             accidentText.setString("Temperature: " + temp + "F");
-            accidentText.setPosition(5,550);
+            accidentText.setPosition(257,550);
             window->draw(accidentText);
 
             accidentText.setString("Weather Condition: " + condition);
-            accidentText.setPosition(5,565);
+            accidentText.setPosition(257,565);
             window->draw(accidentText);
 
             accidentText.setString("Accident Severity (From 1-4): " + severity);
-            accidentText.setPosition(5,580);
+            accidentText.setPosition(257,580);
             window->draw(accidentText);
         }
     }
@@ -232,6 +234,7 @@ void Window::cityMenu(std::string selection){
                     j->selected = false;
                 }
                 window->close();
+                return;
             }
             float mouseX, mouseY;
             mouseX = sf::Mouse::getPosition(*window).x;
@@ -377,7 +380,7 @@ void Window::cityMenu(std::string selection){
     }
 }
 
-void Window::updateMain(int j){
+void Window::updateMain(int j, std::vector<float> times){
     sf::RectangleShape rect(sf::Vector2f(250,600));
     rect.setFillColor({200,200,200});
 
@@ -398,11 +401,39 @@ void Window::updateMain(int j){
     window->draw(menuButtons[11]->getSprite());
     window->draw(menuButtons[11]->getText());
 
+    if(times.size() > 0){
+        sf::Text performanceText;
+        performanceText.setFont(font);
+        performanceText.setFillColor(sf::Color::Black);
+        performanceText.setScale(0.5,0.5);
+        performanceText.setString("Structure Load Performance:");
+        performanceText.setPosition(5,500);
+        window->draw(performanceText);
+
+        sf::Text mapPerformanceText;
+        mapPerformanceText.setFont(font);
+        mapPerformanceText.setFillColor(sf::Color::Black);
+        mapPerformanceText.setScale(0.5,0.5);
+        mapPerformanceText.setString("Map: " + std::to_string(times[0]) + "ms");
+        mapPerformanceText.setPosition(5,515);
+        window->draw(mapPerformanceText);
+
+        sf::Text hashMapPerformanceText;
+        hashMapPerformanceText.setFont(font);
+        hashMapPerformanceText.setFillColor(sf::Color::Black);
+        hashMapPerformanceText.setScale(0.5,0.5);
+        hashMapPerformanceText.setString("Hash Map: " + std::to_string(times[1]) + "ms");
+        hashMapPerformanceText.setPosition(5,530);
+        window->draw(hashMapPerformanceText);
+    }
+
     window->display();
 }
 
 void Window::mainMenu() {
-    updateMain(0);
+    std::vector<float> times;
+
+    updateMain(0, times);
     runSettings();
 
     if(!structSelect){
@@ -410,7 +441,7 @@ void Window::mainMenu() {
         return;
     }
     else{
-        initialize_maps("../US_Accidents_10_Major_Cities.csv", mapStruct, hashMapStruct);
+        times = initialize_maps("../US_Accidents_10_Major_Cities.csv", mapStruct, hashMapStruct);
     }
 
     while(window->isOpen()){
@@ -440,7 +471,6 @@ void Window::mainMenu() {
                     if(menuButtons[i]->getSprite().getGlobalBounds().contains(mouseX, mouseY)) {
                         menuButtons[i]->setSpriteColor({240, 240, 240});
                         if(i < 10){
-
                             // Referenced from SFML Documentation: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Clock.php,
                             //      https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Time.php
                             sf::Time elapsed;
@@ -451,7 +481,7 @@ void Window::mainMenu() {
                                 window->pollEvent(event);
                                 elapsed += clock.restart();
                                 while(elapsed >= ms){
-                                    updateMain(elapsedMS);
+                                    updateMain(elapsedMS, times);
                                     elapsedMS++;
                                     elapsed -= ms;
                                 }
@@ -466,7 +496,6 @@ void Window::mainMenu() {
 
                             // Referenced from SFML Documentation: https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Clock.php
                             //      https://www.sfml-dev.org/documentation/2.6.1/classsf_1_1Time.php
-
                             sf::Time elapsed2;
                             sf::Clock clock2;
                             sf::Time ms2 = sf::milliseconds(1);
@@ -475,20 +504,19 @@ void Window::mainMenu() {
                                 window->pollEvent(event);
                                 elapsed2 += clock2.restart();
                                 while(elapsed2 >= ms2){
-                                    updateMain(counter2);
+                                    updateMain(counter2, times);
                                     counter2--;
                                     elapsed2 -= ms2;
                                 }
                             }
                         }
                         else{
-                            int previousSelection = structSelect;
                             runSettings();
                         }
                     }
                 }
             }
-            updateMain(0);
+            updateMain(0, times);
         }
     }
 }

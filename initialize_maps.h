@@ -7,12 +7,12 @@
 #include <cmath>
 
 //will later pass in map and hashmap as parameters
-std::vector<std::chrono::duration<float>> initialize_maps(const std::string &filename, OrderedMap<std::string, OrderedMap<std::string,
+std::vector<float> initialize_maps(const std::string &filename, OrderedMap<std::string, OrderedMap<std::string,
                      OrderedMap<std::vector<std::string>, std::vector<std::string>>>>& mapStruct,
                      std::unordered_map<std::string, std::unordered_map<std::string,
                      std::unordered_map<std::string,std::vector<std::string>>>>& hashMapStruct){
 
-    std::vector<std::chrono::duration<float>> times;
+    std::vector<float> times;
     std::chrono::duration<float> mapTime;
     std::chrono::duration<float> hashMapTime;
 
@@ -25,6 +25,12 @@ std::vector<std::chrono::duration<float>> initialize_maps(const std::string &fil
 
     std::string line;
     std::getline(data_file, line);
+
+
+    std::chrono::duration<float> mapDuration;
+    std::chrono::duration<float> hashMapDuration;
+
+
     while (std::getline(data_file, line)) {
         std::stringstream line_stream(line);
         std::string section;
@@ -79,18 +85,19 @@ std::vector<std::chrono::duration<float>> initialize_maps(const std::string &fil
         mapStruct[sections_of_line[0]][month][coords] = accident_info;
         auto mapTimeEnd = std::chrono::high_resolution_clock::now();
 
-        mapTime += mapTimeEnd - mapTimeStart;
+        mapDuration = std::chrono::duration<float, std::milli>(mapDuration + mapTimeEnd - mapTimeStart);
 
         auto hashMapTimeStart = std::chrono::high_resolution_clock::now();
         hashMapStruct[sections_of_line[0]][month][coords[0] + "x" + coords[1]] = accident_info;
         auto hashMapTimeEnd = std::chrono::high_resolution_clock::now();
 
-        hashMapTime += hashMapTimeEnd - hashMapTimeStart;
+
+        hashMapDuration = std::chrono::duration<float, std::milli>(hashMapDuration + hashMapTimeEnd - hashMapTimeStart);
     }
 
     data_file.close();
-    times.push_back(mapTime);
-    times.push_back(hashMapTime);
+    times.push_back(mapDuration.count());
+    times.push_back(hashMapDuration.count());
 
     return times;
 }

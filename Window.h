@@ -56,7 +56,7 @@ private:
     void updateCity(int scale, int x, int y);
     void runSettings();
     void loadButtons();
-    void updateMain(int j);
+    void updateMain(int j, std::vector<float> times);
     void cityMenu(std::string selection);
     void updateSettings(sf::RenderWindow& settingsWindow);
 
