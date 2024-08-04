@@ -1,85 +1,100 @@
-#ifndef HASHMAP_H
-#define HASHMAP_H
+#pragma once
+#include <iostream>
+#include <functional> 
 
-#include <vector>
-#include <functional>
-#include <stdexcept>
-#include <utility>
-
-template <typename Key, typename Value>
-class HashMap {
+template<typename Key, typename Value>
+class Hashmap {
 private:
-    std::vector<std::vector<std::pair<Key, Value>>> table;
-    size_t num_buckets;
-    size_t size;
+    struct HashNode {
+        Key key;
+        Value value;
+        bool isOccupied;
 
-    size_t hash_function(const Key &key) const {
-        return std::hash<Key>{}(key) % num_buckets;
+        HashNode() : isOccupied(false) {}
+    };
+
+    HashNode* table;
+    int capacity;
+    int size;
+
+    int hashFunction(const Key& key) const {
+        std::hash<Key> hashFn;
+        return hashFn(key) % capacity;
+    }
+
+    void resize() {
+        int oldCapacity = capacity;
+        capacity *= 2;
+        HashNode* newTable = new HashNode[capacity];
+
+        for (int i = 0; i < capacity; ++i) {
+            newTable[i].isOccupied = false;
+        }
+
+        for (int i = 0; i < oldCapacity; ++i) {
+            if (table[i].isOccupied) {
+                int newIndex = hashFunction(table[i].key);
+                int j = 0;
+                while (newTable[(newIndex + j * j) % capacity].isOccupied) {
+                    j++;
+                }
+                newTable[(newIndex + j * j) % capacity] = table[i];
+            }
+        }
+
+        delete[] table;
+        table = newTable;
     }
 
 public:
-    HashMap(size_t buckets) : num_buckets(buckets), size(0) {
-        table.resize(num_buckets);
-    }
-
-    Value& operator[](const Key &key) {
-        size_t index = hash_function(key);
-        for (auto &pair : table[index]) {
-            if (pair.first == key) {
-                return pair.second;
-            }
-        }
-        table[index].emplace_back(key, Value());
-        ++size;
-        return table[index].back().second;
-    }
-
-    void insert(const Key &key, const Value &value) {
-        size_t index = hash_function(key);
-        for (auto &pair : table[index]) {
-            if (pair.first == key) {
-                pair.second = value;
-                return;
-            }
-        }
-        table[index].emplace_back(key, value);
-        ++size;
-    }
-
-    bool find(const Key &key) const {
-        size_t index = hash_function(key);
-        for (const auto &pair : table[index]) {
-            if (pair.first == key) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    Value get(const Key &key) const {
-        size_t index = hash_function(key);
-        for (const auto &pair : table[index]) {
-            if (pair.first == key) {
-                return pair.second;
-            }
-        }
-        throw std::runtime_error("Key not found");
-    }
-
-    void traverse(std::vector<Key> &key_vect, std::vector<Value> &value_vect) const {
-        for (const auto &bucket : table) {
-            for (const auto &pair : bucket) {
-                key_vect.push_back(pair.first);
-                value_vect.push_back(pair.second);
-            }
+    Hashmap(int cap = 1000) : capacity(cap), size(0) {
+        table = new HashNode[capacity];
+        for (int i = 0; i < capacity; ++i) {
+            table[i].isOccupied = false;
         }
     }
 
-    size_t get_size() const {
-        return size;
+    ~Hashmap() {
+        delete[] table;
     }
 
-    ~HashMap() = default;
+    void insert(const Key& key, const Value& value) {
+        int index = hashFunction(key);
+        int i = 0;
+
+        while (table[(index + i * i) % capacity].isOccupied) {
+            i++;
+        }
+
+        table[(index + i * i) % capacity].key = key;
+        table[(index + i * i) % capacity].value = value;
+        table[(index + i * i) % capacity].isOccupied = true;
+        size++;
+
+        if (static_cast<float>(size) / capacity > 0.75) {
+            resize();
+        }
+    }
+
+    Value* search(const Key& key) {
+        int index = hashFunction(key);
+        int i = 0;
+
+        while (table[(index + i * i) % capacity].isOccupied) {
+            if (table[(index + i * i) % capacity].key == key) {
+                return &table[(index + i * i) % capacity].value;
+            }
+            i++;
+        }
+
+        return nullptr;
+    }
+
+    void traverse() const {
+        for (int i = 0; i < capacity; ++i) {
+            if (table[i].isOccupied) {
+                std::cout << "Key: " << table[i].key << ", Value: " << table[i].value << std::endl;
+            }
+        }
+    }
 };
-
-#endif // HASHMAP_H
