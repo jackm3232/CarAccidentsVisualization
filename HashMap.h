@@ -99,4 +99,32 @@ public:
             }
         }
     }
+
+Value& operator[](const Key& key) {
+    int index = hashFunction(key);  
+    int i = 0;  
+// searches for key 
+    while (table[(index + i * i) % capacity].isOccupied) {
+        if (table[(index + i * i) % capacity].key == key) {  
+            return table[(index + i * i) % capacity].value;  
+        }
+        i++;
+    }
+
+    // creates a new entry if key aint found
+    if (!table[(index + i * i) % capacity].isOccupied) {
+        table[(index + i * i) % capacity].key = key;  
+        table[(index + i * i) % capacity].isOccupied = true; 
+        size++;
+
+        // Check load factor 
+        if (static_cast<float>(size) / capacity > 0.75) {
+            resize();
+            return (*this)[key];  // Recompute after resize
+        }
+    }
+
+    return table[(index + i * i) % capacity].value;  // returns value
+}
+
 };
