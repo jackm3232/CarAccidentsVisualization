@@ -53,7 +53,7 @@ void Window::runSettings(){
 
         updateSettings(settingsWindow);
 
-        while (settingsWindow.pollEvent(event)) {
+        while(settingsWindow.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
                 settingsWindow.close();
                 return;
@@ -309,12 +309,17 @@ void Window::cityMenu(std::string selection){
                             }
                         }
                         else{
-                            for(auto i : hashMapStruct[city][std::to_string(month)]){
-                                std::istringstream coords(i.first);
+                            std::vector<std::string> key_vect;
+                            std::vector<std::vector<std::string>> value_vect;
+                            hashMapStruct[city][std::to_string(month)].traverse(key_vect, value_vect);
+
+                            for(auto i : key_vect) {
+                                std::istringstream coords(i);
                                 std::vector<std::string> coordsParsed;
 
+
                                 std::string buffer;
-                                for(int i = 0; i < 2; i++){
+                                for (int i = 0; i < 2; i++) {
                                     getline(coords, buffer, 'x');
                                     coordsParsed.push_back(buffer);
                                 }
@@ -414,7 +419,7 @@ void Window::updateMain(int j, std::vector<float> times){
         mapPerformanceText.setFont(font);
         mapPerformanceText.setFillColor(sf::Color::Black);
         mapPerformanceText.setScale(0.5,0.5);
-        mapPerformanceText.setString("Map: " + std::to_string(times[0]) + "ms");
+        mapPerformanceText.setString("Map: " + std::to_string(times[0]) + "s");
         mapPerformanceText.setPosition(5,515);
         window->draw(mapPerformanceText);
 
@@ -422,7 +427,7 @@ void Window::updateMain(int j, std::vector<float> times){
         hashMapPerformanceText.setFont(font);
         hashMapPerformanceText.setFillColor(sf::Color::Black);
         hashMapPerformanceText.setScale(0.5,0.5);
-        hashMapPerformanceText.setString("Hash Map: " + std::to_string(times[1]) + "ms");
+        hashMapPerformanceText.setString("Hash Map: " + std::to_string(times[1]) + "s");
         hashMapPerformanceText.setPosition(5,530);
         window->draw(hashMapPerformanceText);
     }

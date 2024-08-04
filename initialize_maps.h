@@ -1,4 +1,5 @@
 #include "ordered_map.h"
+#include "HashMap.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -9,8 +10,8 @@
 //will later pass in map and hashmap as parameters
 std::vector<float> initialize_maps(const std::string &filename, OrderedMap<std::string, OrderedMap<std::string,
                      OrderedMap<std::vector<std::string>, std::vector<std::string>>>>& mapStruct,
-                     std::unordered_map<std::string, std::unordered_map<std::string,
-                     std::unordered_map<std::string,std::vector<std::string>>>>& hashMapStruct){
+                     Hashmap<std::string, Hashmap<std::string, Hashmap<std::string,
+                     std::vector<std::string>>>>& hashMapStruct){
 
     std::vector<float> times;
     std::chrono::duration<float> mapTime;
@@ -25,7 +26,6 @@ std::vector<float> initialize_maps(const std::string &filename, OrderedMap<std::
 
     std::string line;
     std::getline(data_file, line);
-
 
     std::chrono::duration<float> mapDuration;
     std::chrono::duration<float> hashMapDuration;
@@ -85,7 +85,7 @@ std::vector<float> initialize_maps(const std::string &filename, OrderedMap<std::
         mapStruct[sections_of_line[0]][month][coords] = accident_info;
         auto mapTimeEnd = std::chrono::high_resolution_clock::now();
 
-        mapDuration = std::chrono::duration<float, std::milli>(mapDuration + mapTimeEnd - mapTimeStart);
+        mapDuration = std::chrono::duration<float, std::micro>(mapDuration + mapTimeEnd - mapTimeStart);
 
         auto hashMapTimeStart = std::chrono::high_resolution_clock::now();
         hashMapStruct[sections_of_line[0]][month][coords[0] + "x" + coords[1]] = accident_info;

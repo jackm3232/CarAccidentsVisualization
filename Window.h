@@ -4,13 +4,13 @@
 #include <chrono>
 #include <thread>
 #include "ordered_map.h"
+#include "HashMap.h"
 
 class Accident{
 public:
     std::string latitude;
     std::string longitude;
     sf::CircleShape* dot;
-    //void updateDot(sf::CircleShape& dot, float y, float x, int scale, int x_offset, int y_offset);
     void updateDot(std::string& city, int scale, int x_offset, int y_offset);
     bool selected;
 
@@ -69,8 +69,8 @@ public:
     OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>,
     std::vector<std::string>>>> mapStruct;
 
-    std::unordered_map<std::string, std::unordered_map<std::string, std::unordered_map<std::string,
-    std::vector<std::string>>>> hashMapStruct;
+    Hashmap<std::string, Hashmap<std::string, Hashmap<std::string, std::vector<std::string>>>> hashMapStruct;
+
 
     void mainMenu();
     sf::RenderWindow* getWindow();

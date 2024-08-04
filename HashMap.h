@@ -54,10 +54,6 @@ public:
             table[i].isOccupied = false;
         }
     }
-
-    ~Hashmap() {
-        delete[] table;
-    }
 // insert  function using qudrating probing
 //https://www.geeksforgeeks.org/quadratic-probing-in-hashing/
     void insert(const Key& key, const Value& value) {
@@ -92,12 +88,11 @@ public:
         return nullptr;
     }
 
-    void traverse(std::vector<std::string>&KeyVector,std::vector<std::string>&ValueVector) const {
+    void traverse(std::vector<Key>&KeyVector,std::vector<Value>&ValueVector) const {
         for (int i = 0; i < capacity; ++i) {
             if (table[i].isOccupied) {
                 KeyVector.push_back(table[i].key);
                 ValueVector.push_back(table[i].value);
-
             }
         }
     }
