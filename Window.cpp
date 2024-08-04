@@ -1,13 +1,7 @@
+#include <sstream>
 #include "Window.h"
 #include <thread>
 #include "initialize_maps.h"
-
-void setText(sf::Text &text, float x, float y){
-    sf::FloatRect textRect = text.getLocalBounds();
-    text.setOrigin(textRect.left + textRect.width/2.0f,
-                   textRect.top + textRect.height/2.0f);
-    text.setPosition(sf::Vector2f(x, y));
-}
 
 void Window::updateSettings(sf::RenderWindow& settingsWindow){
     settingsWindow.clear({200, 200, 200});
@@ -158,11 +152,24 @@ void Window::updateCity(int scale, int x, int y){
     for(auto i : accidents){
         if(i->selected){
             std::vector<std::string> key = {i->longitude, i->latitude};
+            std::string date;
+            std::string temp;
+            std::string condition;
+            std::string severity;
 
-            std::string date = mapStruct[city][std::to_string(month)][key][0];
-            std::string temp = mapStruct[city][std::to_string(month)][key][1];
-            std::string condition = mapStruct[city][std::to_string(month)][key][2];
-            std::string severity = mapStruct[city][std::to_string(month)][key][3];
+            if(structSelect == 1){
+                date = mapStruct[city][std::to_string(month)][key][0];
+                temp = mapStruct[city][std::to_string(month)][key][1];
+                condition = mapStruct[city][std::to_string(month)][key][2];
+                severity = mapStruct[city][std::to_string(month)][key][3];
+            }
+            else if(structSelect == 2){
+                date = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][0];
+                temp = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][1];
+                condition = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][2];
+                severity = hashMapStruct[city][std::to_string(month)][key[0] + "x" + key[1]][3];
+            }
+
 
             accidentText.setString("Date: " + date);
             accidentText.setPosition(5,520);
@@ -214,9 +221,6 @@ void Window::cityMenu(std::string selection){
     int scale = 0;
     int x = 0;
     int y = 0;
-
-    //OrderedMap<std::vector<std::string>, std::vector<std::string>> cityStructMap;
-    //std::unordered_map<std::string, std::vector<std::string>> cityStructHashMap;
 
     updateCity(scale, x, y);
 
@@ -302,7 +306,22 @@ void Window::cityMenu(std::string selection){
                             }
                         }
                         else{
+                            for(auto i : hashMapStruct[city][std::to_string(month)]){
+                                std::istringstream coords(i.first);
+                                std::vector<std::string> coordsParsed;
 
+                                std::string buffer;
+                                for(int i = 0; i < 2; i++){
+                                    getline(coords, buffer, 'x');
+                                    coordsParsed.push_back(buffer);
+                                }
+
+                                Accident* accident = new Accident;
+                                accident->longitude = coordsParsed[0];
+                                accident->latitude = coordsParsed[1];
+                                accident->updateDot(city, scale, x, y);
+                                accidents.push_back(accident);
+                            }
                         }
                     }
                 }
@@ -387,6 +406,7 @@ void Window::mainMenu() {
     runSettings();
 
     if(!structSelect){
+        window->close();
         return;
     }
     else{
@@ -396,7 +416,7 @@ void Window::mainMenu() {
     while(window->isOpen()){
         sf::Event event;
         while(window->pollEvent(event)) {
-            if (event.type == sf::Event::Closed) {
+            if(event.type == sf::Event::Closed) {
                 window->close();
             }
 
