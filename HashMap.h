@@ -16,12 +16,12 @@ private:
     HashNode* table;
     int capacity;
     int size;
-
+// Hash function to create key
     int hashFunction(const Key& key) const {
         std::hash<Key> hashFn;
         return hashFn(key) % capacity;
     }
-
+// function used to rehash the table
     void resize() {
         int oldCapacity = capacity;
         capacity *= 2;
@@ -47,17 +47,19 @@ private:
     }
 
 public:
+   // sets initial array to 1000 buckets
     Hashmap(int cap = 1000) : capacity(cap), size(0) {
         table = new HashNode[capacity];
         for (int i = 0; i < capacity; ++i) {
             table[i].isOccupied = false;
         }
     }
-
+   
     ~Hashmap() {
         delete[] table;
     }
-
+// insert  function using qudrating probing
+//https://www.geeksforgeeks.org/quadratic-probing-in-hashing/
     void insert(const Key& key, const Value& value) {
         int index = hashFunction(key);
         int i = 0;
@@ -70,12 +72,12 @@ public:
         table[(index + i * i) % capacity].value = value;
         table[(index + i * i) % capacity].isOccupied = true;
         size++;
-
+    // checks to rehash using the load factor
         if (static_cast<float>(size) / capacity > 0.75) {
             resize();
         }
     }
-
+// search function using qudrating probing 
     Value* search(const Key& key) {
         int index = hashFunction(key);
         int i = 0;
