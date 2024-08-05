@@ -1013,8 +1013,8 @@ MenuButton::MenuButton(const std::string& inputText, int width, int height){
     buttonRectangle.setSize(sf::Vector2f(width, height));
     buttonRectangle.setFillColor({225,225,225});
 
-    // Load font
-    font.loadFromFile("../fonts/OpenSans-Regular.ttf");
+    // Load Open Sans font: https://fonts.google.com/specimen/Open+Sans
+    font.loadFromFile("../fonts/Open_Sans/static/OpenSans-Regular.ttf");
     buttonText.setFont(font);
     buttonText.setString(inputText);
     buttonText.setCharacterSize(20);
@@ -1032,8 +1032,8 @@ SelectionButton::SelectionButton(const std::string& inputText, int width, int he
     buttonRectangle.setSize(sf::Vector2f(width, height));
     buttonRectangle.setFillColor({225,225,225});
 
-    // Load font
-    font.loadFromFile("../fonts/OpenSans-Regular.ttf");
+    // Load Open Sans font: https://fonts.google.com/specimen/Open+Sans
+    font.loadFromFile("../fonts/Open_Sans/static/OpenSans-Regular.ttf");
     buttonText.setFont(font);
     buttonText.setString(inputText);
     buttonText.setCharacterSize(20);
@@ -1046,6 +1046,8 @@ Window::Window(){
     loadTextures();
     city = "None";
     structSelect = 0;
-    font.loadFromFile("../fonts/OpenSans-Regular.ttf");
+
+    // Load Open Sans font: https://fonts.google.com/specimen/Open+Sans
+    font.loadFromFile("../fonts/Open_Sans/static/OpenSans-Regular.ttf");
     window = new sf::RenderWindow(sf::VideoMode(1050, 600), "Car Accident Visualization");
 }
