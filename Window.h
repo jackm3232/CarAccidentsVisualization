@@ -6,74 +6,102 @@
 #include "ordered_map.h"
 #include "HashMap.h"
 
+// Accident class
 class Accident{
 public:
+    // Used to search map & hash map
     std::string latitude;
     std::string longitude;
+
+    // Dot object to display on map
     sf::CircleShape* dot;
     void updateDot(std::string& city, int scale, int x_offset, int y_offset);
     bool selected;
 
+    // Constructor
     Accident();
 };
 
+// Menu button class
 class MenuButton{
 private:
+    // MenuButton attributes
     sf::Font font;
+    std::string text;
     sf::Text buttonText;
     sf::Sprite buttonSprite;
+    sf::RectangleShape buttonRectangle;
 
 public:
-    std::string text;
-    MenuButton(std::string text, int width, int height);
-    sf::Sprite getSprite();
+    // Getters and setters
     sf::Text getText();
-    void setSpritePos(int x,int y);
+    std::string getSelectionText();
+    sf::Sprite getSprite();
+    sf::RectangleShape getRect();
+    void setPos(int x, int y);
     void setTextPos(int x, int y);
-    void setSpriteColor(sf::Color color);
+    void setColor(sf::Color color);
+
+    // Parameterized constructor
+    MenuButton(const std::string& text, int width, int height);
 };
 
+// Selection button child class
 class SelectionButton : public MenuButton{
 private:
+    // Attributes
     sf::Font font;
+    bool selected;
     sf::Text buttonText;
     sf::Sprite buttonSprite;
+    sf::RectangleShape buttonRectangle;
 
 public:
-    bool selected;
-    std::string text;
-    SelectionButton(std::string inputText, int width, int height);
+    // Getter and setters
+    void select();
+    void unselect();
+    bool getSelection();
+
+    // Parameterized constructor
+    SelectionButton(const std::string& inputText, int width, int height);
 };
 
+// Window class
 class Window{
 private:
+    // Attributes
+    int month;
     sf::Font font;
     std::string city;
-    int month;
     int structSelect;
     sf::RenderWindow* window;
 
+    // Private Functions
     void updateCity(int scale, int x, int y);
     void runSettings();
-    void loadButtons();
+    void loadTextures();
     void updateMain(int j, std::vector<float> times);
-    void cityMenu(std::string selection);
+    void cityMenu();
     void updateSettings(sf::RenderWindow& settingsWindow);
 
-public:
+    // Maps, buttons, textures and accident objects
+    std::vector<Accident*> accidents;
     std::vector<MenuButton*> menuButtons;
     std::vector<SelectionButton*> selectionButtons;
     std::map<std::string, sf::RectangleShape*> maps;
-    std::vector<Accident*> accidents;
 
-    OrderedMap<std::string, OrderedMap<std::string, OrderedMap<std::vector<std::string>,
-    std::vector<std::string>>>> mapStruct;
+    // Map structure
+    OrderedMap<std::string, OrderedMap<std::string,
+    OrderedMap<std::vector<std::string>,std::vector<std::string>>>> mapStruct;
 
-    Hashmap<std::string, Hashmap<std::string, Hashmap<std::string, std::vector<std::string>>>> hashMapStruct;
+    // Hash map structure
+    Hashmap<std::string, Hashmap<std::string,
+    Hashmap<std::string, std::vector<std::string>>>> hashMapStruct;
 
-
+public:
+    // Run program
     void mainMenu();
-    sf::RenderWindow* getWindow();
 
+    // Default constructor
     Window();
 };
