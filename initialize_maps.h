@@ -7,7 +7,7 @@
 #include <map>
 #include <cmath>
 
-//will later pass in map and hashmap as parameters
+//Parse data from CSV file and add info into the ordered map and hashmap
 std::vector<float> initialize_maps(const std::string &filename, OrderedMap<std::string, OrderedMap<std::string,
                      OrderedMap<std::vector<std::string>, std::vector<std::string>>>>& mapStruct,
                      Hashmap<std::string, Hashmap<std::string, Hashmap<std::string,
